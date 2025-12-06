@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Weather App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        :root {
+            --bg-clear: linear-gradient(135deg, #516a7eff, #6590d1ff);
+            --bg-cloud: linear-gradient(135deg, #757f9a, #d7dde8);
+            --bg-rain: linear-gradient(135deg, #314755, #26a0da);
+            --bg-storm: linear-gradient(135deg, #141e30, #243b55);
+            --bg-snow: linear-gradient(135deg, #e0eafc, #cfdef3);
+
+            --card-bg: rgba(255, 255, 255, 0.9);
+            --card-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            --accent: #1976d2;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 20px;
+            color: #111827;
+        }
+
+        /* background theme */
+        body.theme-clear { background: var(--bg-clear); }
+        body.theme-cloud { background: var(--bg-cloud); }
+        body.theme-rain  { background: var(--bg-rain); }
+        body.theme-storm { background: var(--bg-storm); }
+        body.theme-snow  { background: var(--bg-snow); }
+        body.theme-default { background: var(--bg-clear); }
+
+        .container {
+            width: 100%;
+            max-width: 1000px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .title {
+            text-align: center;
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #4b5563;
+        }
+
+        form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+
+        input[type="text"] {
+            flex: 1 1 240px;
+            padding: 10px 12px;
+            border-radius: 999px;
+            border: 1px solid #cbd5e1;
+            outline: none;
+            font-size: 0.95rem;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
+        }
+
+        button {
+            border: none;
+            border-radius: 999px;
+            padding: 10px 18px;
+            background: var(--accent);
+            color: white;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.1s ease;
+        }
+
+        button:hover {
+            background: #1259a8;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 12px rgba(15, 23, 42, 0.25);
+        }
+
+        .quick-cities {
+            text-align: center;
+            margin-top: 6px;
+        }
+
+        .quick-cities button {
+            margin: 4px 3px;
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            background: white;
+            color: #111827;
+            border: 1px solid #e5e7eb;
+        }
+
+        .quick-cities button:hover {
+            background: #e5f0ff;
+        }
+
+        .error {
+            margin-top: 10px;
+            text-align: center;
+            color: #b91c1c;
+            font-weight: 600;
+        }
+
+        .weather-main {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .weather-left {
+            flex: 1 1 260px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .weather-temp {
+            font-size: 3rem;
+            font-weight: 700;
+        }
+
+        .weather-meta {
+            font-size: 0.95rem;
+            color: #4b5563;
+        }
+
+        .weather-right {
+            flex: 1 1 220px;
+            font-size: 0.9rem;
+            color: #4b5563;
+        }
+
+        .weather-right p {
+            margin-bottom: 4px;
+        }
+
+        .section-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .divider {
+            height: 1px;
+            background: #e5e7eb;
+            margin: 16px 0;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+        }
+
+        .mini-card {
+            background: #f9fafb;
+            border-radius: 12px;
+            padding: 10px 12px;
+            font-size: 0.85rem;
+        }
+
+        .mini-card strong {
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .suggestion {
+            margin-top: 8px;
+            padding: 8px 10px;
+            background: #ecfdf3;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            color: #14532d;
+        }
+
+        /* Forecast */
+        .forecast-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .forecast-item {
+            flex: 1 1 120px;
+            background: #f9fafb;
+            border-radius: 12px;
+            padding: 8px 10px;
+            text-align: center;
+            font-size: 0.85rem;
+        }
+
+        .forecast-item img {
+            width: 50px;
+            height: 50px;
+        }
+
+        /* AQI */
+        .aqi-value {
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+
+        @media (max-width: 640px) {
+            .weather-main {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .weather-left {
+                justify-content: flex-start;
+            }
+
+            .title {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body class="
+    {% if weather %}
+        theme-{{ weather.theme }}
+    {% else %}
+        theme-default
+    {% endif %}
+">
+<div class="container">
+
+    <div class="card">
+        <div class="title">🌤 Weather Explorer</div>
+        <div class="subtitle">Get current weather, forecast, air quality & outfit tips</div>
+
+        <!-- Search Form -->
+        <form method="POST">
+            <input type="text" name="city" placeholder="Enter city name (e.g. Ahmedabad)" value="{{ city_query }}">
+            <button type="submit">Search</button>
+        </form>
+
+        <!-- Feature 4: Quick India City Buttons -->
+        <div class="quick-cities">
+            <span style="font-size: 0.85rem; color:#4b5563;">Quick cities:</span>
+            <form method="POST" style="margin-top: 4px;">
+                <button type="submit" name="city" value="Ahmedabad">Ahmedabad</button>
+                <button type="submit" name="city" value="Mumbai">Mumbai</button>
+                <button type="submit" name="city" value="Delhi">Delhi</button>
+                <button type="submit" name="city" value="Kolkata">Kolkata</button>
+                <button type="submit" name="city" value="Chennai">Chennai</button>
+                <button type="submit" name="city" value="Bengaluru">Bengaluru</button>
+            </form>
+        </div>
+
+        {% if error %}
+            <div class="error">{{ error }}</div>
+        {% endif %}
+    </div>
+
+    {% if weather %}
+    <!-- MAIN WEATHER CARD -->
+    <div class="card">
+        <div class="weather-main">
+            <div class="weather-left">
+                <!-- Feature 1: Weather icon -->
+                <img src="{{ weather.icon_url }}" alt="Weather icon">
+                <div>
+                    <div class="weather-temp">{{ weather.temperature|round(1) }}°C</div>
+                    <div style="font-weight:600;">{{ weather.city_name }}</div>
+                    <div class="weather-meta">{{ weather.description }}</div>
+                    <div class="weather-meta">
+                        Feels like {{ weather.feels_like|round(1) }}°C
+                    </div>
+                </div>
+            </div>
+
+            <div class="weather-right">
+                <p><span class="section-title">Details:</span></p>
+                <p>Humidity: <strong>{{ weather.humidity }}%</strong></p>
+                <p>Pressure: <strong>{{ weather.pressure }} hPa</strong></p>
+                <p>Visibility: <strong>{{ weather.visibility }} km</strong></p>
+                <p>Wind speed: <strong>{{ weather.wind_speed }} m/s</strong></p>
+                <p>Sunrise: <strong>{{ weather.sunrise }}</strong></p>
+                <p>Sunset: <strong>{{ weather.sunset }}</strong></p>
+                <p>Local time: <strong>{{ weather.local_time }}</strong></p>
+
+                <!-- Feature 8: Clothing suggestion -->
+                <div class="suggestion">
+                    👕 Outfit tip: {{ weather.suggestion }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- EXTRA INFO: AQI + Mini stats -->
+    <div class="card">
+        <div class="grid-3">
+            <div class="mini-card">
+                <strong>Feels like</strong>
+                {{ weather.feels_like|round(1) }}°C
+            </div>
+            <div class="mini-card">
+                <strong>Humidity</strong>
+                {{ weather.humidity }}%
+            </div>
+            {% if aqi %}
+            <div class="mini-card">
+                <strong>Air Quality (AQI)</strong>
+                <div class="aqi-value">{{ aqi.index }}</div>
+                <div>{{ aqi.label }}</div>
+                {% if aqi.pm2_5 is not none %}
+                    <div style="margin-top:4px;">PM2.5: {{ aqi.pm2_5|round(1) }}</div>
+                {% endif %}
+                {% if aqi.pm10 is not none %}
+                    <div>PM10: {{ aqi.pm10|round(1) }}</div>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Feature 2: 5-DAY FORECAST -->
+    {% if forecast %}
+    <div class="card">
+        <div class="section-title">📅 5-Day Forecast</div>
+        <div class="forecast-row">
+            {% for f in forecast %}
+            <div class="forecast-item">
+                <div style="font-weight:600;">{{ f.date }}</div>
+                <img src="{{ f.icon }}" alt="icon">
+                <div style="font-size:1rem; font-weight:600;">{{ f.temp }}°C</div>
+                <div>{{ f.description }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    {% endif %}
+
+</div>
+</body>
+</html>
